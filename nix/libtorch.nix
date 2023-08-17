@@ -21,7 +21,7 @@ let
   version = "1.11.0";
   srcs = import ./libtorch-binary-hashes.nix version;
   unavailable = throw "libtorch is not available for this platform";
-  libcxx-for-libtorch = if stdenv.hostPlatform.system == "x86_64-darwin" then libcxx else stdenv.cc.cc.lib;
+  libcxx-for-libtorch = if builtins.elem stdenv.hostPlatform.system [ "x86_64-darwin" "aarch64-darwin" ] then libcxx else stdenv.cc.cc.lib;
 in stdenv.mkDerivation {
   inherit version;
   pname = "libtorch";

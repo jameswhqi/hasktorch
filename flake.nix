@@ -2,16 +2,18 @@
   description = "Hasktorch";
 
   nixConfig = {
-    substituters = [
-      "https://cache.nixos.org"
-    ];
+    # substituters = [
+    #   "https://cache.nixos.org"
+    # ];
     extra-substituters = [
       "https://cache.iog.io"
       "https://hasktorch.cachix.org"
+      "https://cache.zw3rk.com"
     ];
     extra-trusted-public-keys = [
       "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
       "hasktorch.cachix.org-1:wLjNS6HuFVpmzbmv01lxwjdCOtWRD8pQVR3Zr/wVoQc="
+      "loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk="
     ];
     allow-import-from-derivation = "true";
     bash-prompt = "\\[\\033[1m\\][dev-hasktorch$(__git_ps1 \" (%s)\")]\\[\\033\[m\\]\\040\\w$\\040";
@@ -20,7 +22,7 @@
 
   inputs = {
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix?rev=ec0c59e2de05053c21301bc959a27df92fe93376";
+      url = "github:input-output-hk/haskell.nix";
     };
     nixpkgs.follows = "haskell-nix/nixpkgs-unstable";
     utils.follows = "haskell-nix/flake-utils";
@@ -29,11 +31,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tokenizers = {
-      url = "github:hasktorch/tokenizers/flakes";
-      inputs.utils.follows = "haskell-nix/flake-utils";
+      url = "github:jameswhqi/tokenizers/flakes-aarch64-darwin";
+      inputs.utils.follows = "utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.flake-compat.follows = "haskell-nix/flake-compat";
+      inputs.flake-utils.follows = "utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self
@@ -81,7 +88,7 @@
           in {
             hasktorchProject = import ./nix/haskell.nix ({
               pkgs = prev // libtorch-libs;
-              compiler-nix-name = "ghc924";
+              compiler-nix-name = "ghc928";
               inherit (prev) lib;
               profiling = build-config."${ty}".profiling;
               cudaSupport = build-config."${ty}".cudaSupport;
@@ -103,7 +110,7 @@
             legacyPkgs = haskell-nix.legacyPackages.${system}.appendOverlays overlays;
           };
 
-    in { inherit (hasktorch) overlays; } // (eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
+    in { inherit (hasktorch) overlays; } // (eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ] (system:
       let
         mk-pkgset = generic-pkgset system;
 
@@ -172,7 +179,7 @@
         };
         packages = with builds;
           builtins.foldl' (sum: v: lib.recursiveUpdate sum v) {} (
-            if system == "x86_64-darwin"
+            if builtins.elem system [ "x86_64-darwin" "aarch64-darwin" ]
             then  [cpu extra-packages]
             else  [cpu cuda-10 cuda-11 extra-packages]
           );

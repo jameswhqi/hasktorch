@@ -20,5 +20,10 @@ version : builtins.getAttr version {
       url = "https://download.pytorch.org/libtorch/cu113/libtorch-cxx11-abi-shared-with-deps-1.11.0%2Bcu113.zip";
       hash = "sha256-0J2X76XeWaDn0SaptehYsFVInMTwyzgYxAdshn4wZXM=";
     };
+    aarch64-darwin-cpu = {
+      name = "libtorch-v2.0.0.zip";
+      url = "https://github.com/mlverse/libtorch-mac-m1/releases/download/LibTorch/libtorch-v2.0.0.zip";
+      hash = "sha256-BKDTrRj/QSAP5slJ/op6Q76wChx1eHfNFHc9YyKEm9g=";
+    };
   };
 }
